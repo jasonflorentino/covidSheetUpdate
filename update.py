@@ -12,9 +12,9 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 SPREADSHEET_FILE_NAME = "CityofToronto_COVID-19_Daily_Public_Reporting.xlsx"
 SPREADSHEET_FILE_NAME_ALT = "CityofToronto_COVID-19_Daily_Public_Reporting (1).xlsx"
-ACTIVE_ROW = 291
+ACTIVE_ROW = 292
 ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATE = '2020-12-21'
+PREVIOUS_DATE = '2020-12-22'
 PREVIOUS_DATE_LINE_NO = 17
 
 def wait(seconds):
@@ -83,7 +83,7 @@ while True:
     print(f"Updating next row... (Row: {ACTIVE_ROW})")
     sheet.updateRow(ACTIVE_ROW, LATEST_DATA)
 
-    # Update row counter in this script for next time
+    # Update counters in this script for next time
     print("Reading update.py...")
     content = []
     with open(__file__,"r") as f:
