@@ -10,8 +10,8 @@ import os
 DRIVER_LOCATION = "/usr/local/bin/chromedriver"
 DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/view"
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
-SPREADSHEET_FILE_NAME = "CityofToronto_COVID-19_Daily_Public_Reporting.xlsx"
-SPREADSHEET_FILE_NAME_ALT = "CityofToronto_COVID-19_Daily_Public_Reporting (2).xlsx"
+FILE_NAME = "CityofToronto_COVID-19_Daily_Public_Reporting"
+FILE_EXTENSION = ".xlsx"
 ACTIVE_ROW = 297
 ACTIVE_ROW_LINE_NO = 15
 PREVIOUS_DATE = '2020-12-27'
@@ -21,7 +21,7 @@ def wait(seconds):
     print(f"Waiting {seconds} seconds...")
     sleep(seconds)
 
-# Download Excel spreadsheet owned by City of Toronto 
+# Download Excel spreadsheet owned by City of Toronto using Selenium
 while True:
     print("Opening browser...")
     browser = webdriver.Chrome(DRIVER_LOCATION)
@@ -41,21 +41,45 @@ while True:
 
     # Get data from downloaded Excel spreadsheet
     print("Opening downloaded file...")
-    try:
-        wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + SPREADSHEET_FILE_NAME)
-        workingPath = config.DOWNLOAD_FOLDER + SPREADSHEET_FILE_NAME
-        print(f"Opened {SPREADSHEET_FILE_NAME}.")
-    except:
-        print(f"Could not find: {SPREADSHEET_FILE_NAME}. Trying alt name...")
-        wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + SPREADSHEET_FILE_NAME_ALT)
-        workingPath = config.DOWNLOAD_FOLDER + SPREADSHEET_FILE_NAME_ALT
-        print(f"Opened {SPREADSHEET_FILE_NAME_ALT}.")
+    wb = None
+    workingPath = ''
+    fileAppendNum = 0
 
+    # Try a few potential file names...
+    while True:
+        if fileAppendNum == 0:
+            try:
+                fileName = FILE_NAME + FILE_EXTENSION
+                print(f"Looking for {fileName}...")
+                wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + fileName)
+                workingPath = config.DOWNLOAD_FOLDER + fileName
+                print(f"Opened {fileName}.")
+                break
+            except:
+                print(f"Could not find: {fileName}.\nTrying next name option...")
+                fileAppendNum += 1
+        else:
+            try:
+                downloadAppend = f" ({fileAppendNum})"
+                fileName = FILE_NAME + downloadAppend + FILE_EXTENSION
+                print(f"Looking for {fileName}...")
+                wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + fileName)
+                workingPath = config.DOWNLOAD_FOLDER + fileName
+                print(f"Opened {fileName}.")
+                break
+            except:
+                print(f"Could not find: {fileName}.\nTrying next name option...")
+                fileAppendNum += 1
+        if fileAppendNum == 4:
+            print(f"ERROR: Could not find file after {fileAppendNum} tries.")
+            break
+                
     print("Retrieving date...")
     dateSheet = wb['Cases by Reported Date']
     DATE = dateSheet['A2'].value
     DATE = str(DATE).split(" ")[0]
 
+    # Halt if we've seen this data before
     if DATE == PREVIOUS_DATE:
         print(f"Stopping execution: Spreadsheet data has already been read. (Already read data from: {DATE})")
         print("Deleting downloaded file...")
@@ -73,6 +97,7 @@ while True:
     LATEST_DATA = [DATE, TOTAL_CASE_COUNT, RECOVERED, FATAL, CURRENTLY_HOSP, CURRENTLY_ICU]
     print(f"Success! New data retrieved: {LATEST_DATA}")
 
+    # Delete file once we have the data
     print("Deleting downloaded file...")
     os.remove(workingPath)
 
