@@ -1,0 +1,5 @@
+**/__pycache__/
+*.pickle
+*.json
+config.py
+.DS_Store
