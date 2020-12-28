@@ -2,3 +2,4 @@
 *.pickle
 *.json
 config.py
+.DS_Store
