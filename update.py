@@ -12,9 +12,9 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 SPREADSHEET_FILE_NAME = "CityofToronto_COVID-19_Daily_Public_Reporting.xlsx"
 SPREADSHEET_FILE_NAME_ALT = "CityofToronto_COVID-19_Daily_Public_Reporting (2).xlsx"
-ACTIVE_ROW = 293
+ACTIVE_ROW = 297
 ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATE = '2020-12-23'
+PREVIOUS_DATE = '2020-12-27'
 PREVIOUS_DATE_LINE_NO = 17
 
 def wait(seconds):
