@@ -12,9 +12,9 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Daily_Public_Reporting"
 FILE_EXTENSION = ".xlsx"
-ACTIVE_ROW = 298
+ACTIVE_ROW = 299
 ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATE = '2020-12-28'
+PREVIOUS_DATE = '2020-12-30'
 PREVIOUS_DATE_LINE_NO = 17
 INDENT = "  "
 
@@ -24,6 +24,8 @@ def wait(seconds):
 
 # Download Excel spreadsheet owned by City of Toronto using Selenium
 while True:
+    print("Running update.py...")
+    print(f"Last date recorded: {PREVIOUS_DATE}")
     print("Getting data file...")
     print(f"{INDENT}Opening browser...")
     browser = webdriver.Chrome(DRIVER_LOCATION)
@@ -56,7 +58,7 @@ while True:
                 print(f"{INDENT}Looking for {fileName}...")
                 wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + fileName)
                 workingPath = config.DOWNLOAD_FOLDER + fileName
-                print(f"{INDENT}Opened {fileName}.")
+                print(f"{INDENT}Found!")
                 break
             except:
                 print(f"{INDENT}Could not find: {fileName}.\n{INDENT}Trying next name option...")
@@ -68,7 +70,7 @@ while True:
                 print(f"{INDENT}Looking for {fileName}...")
                 wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + fileName)
                 workingPath = config.DOWNLOAD_FOLDER + fileName
-                print(f"{INDENT}Opened {fileName}.")
+                print(f"{INDENT}Found!")
                 break
             except:
                 print(f"{INDENT}Could not find: {fileName}.\n{INDENT}Trying next name option...")
