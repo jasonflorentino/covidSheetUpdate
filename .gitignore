@@ -3,3 +3,5 @@
 *.json
 config.py
 .DS_Store
+updateCovidSheet
+updateCovidSheet.app/

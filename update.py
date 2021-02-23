@@ -2,28 +2,61 @@
 
 from selenium import webdriver
 from time import sleep
+from os import remove as os_remove
 import openpyxl
 import config
 import ezsheets
-import os
 
 DRIVER_LOCATION = "/usr/local/bin/chromedriver"
 DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/view"
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Daily_Public_Reporting"
-FILE_EXTENSION = ".xlsx"
-ACTIVE_ROW = 299
+FILE_EXTENSIONS = [".xlsx", ".xlsm"]
+ACTIVE_ROW = 351
 ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATE = '2020-12-30'
+PREVIOUS_DATE = '2021-02-20'
 PREVIOUS_DATE_LINE_NO = 17
 INDENT = "  "
+
+# # # # # # # #
+# DEFINITIONS #
+# # # # # # # #
 
 def wait(seconds):
     print(f"{INDENT}Waiting {seconds} seconds...")
     sleep(seconds)
 
-# Download Excel spreadsheet owned by City of Toronto using Selenium
-while True:
+def makeFileNames(fileName, listOfExt, numOfCopies):
+    fileNames = []
+    for num in range(numOfCopies):
+        if num == 0:
+            fileNames.append(f"{fileName}{listOfExt[0]}")
+            fileNames.append(f"{fileName}{listOfExt[0]}{listOfExt[1]}")
+        else:
+            fileNames.append(f"{fileName} ({num}){listOfExt[0]}")
+            fileNames.append(f"{fileName} ({num}){listOfExt[0]}{listOfExt[1]}")
+    return fileNames
+
+def mountFile(fileName):
+    try:
+        print(f"{INDENT}Looking for {fileName}...")
+        wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + fileName)
+        workingPath = config.DOWNLOAD_FOLDER + fileName
+        print(f"{INDENT}Found!")
+        return [True, wb, workingPath]
+    except:
+        print(f"{INDENT}Could not find: {fileName}.")
+        return [False, None, None]
+
+# # # # # # # # #
+# MAIN  PROGRAM #
+# # # # # # # # #
+
+def main():
+
+# BROWSER
+
+    # Open browser, download file
     print("Running update.py...")
     print(f"Last date recorded: {PREVIOUS_DATE}")
     print("Getting data file...")
@@ -32,53 +65,37 @@ while True:
     browser.get(DATA_URL)
     wait(4)
 
+    # Locate + Click download button
     button = browser.find_element_by_xpath(XPATH)
     print(f"{INDENT}Found <{button.tag_name}> element.")
-
     button.click()
     print(f"{INDENT}Clicked <{button.tag_name}> element.")
     wait(7)
 
+    # Quit browser
     print(f"{INDENT}Quitting browser...")
     browser.quit()
     wait(4)
 
-    # Get data from downloaded Excel spreadsheet
-    print("Retrieving data from file...")
-    print(f"{INDENT}Opening downloaded file...")
+# SPREADSHEET
+
+    # Get download file
+    print("Searching for download file...")
     wb = None
     workingPath = ''
-    fileAppendNum = 0
-
-    # Try a few potential file names...
-    while True:
-        if fileAppendNum == 0:
-            try:
-                fileName = FILE_NAME + FILE_EXTENSION
-                print(f"{INDENT}Looking for {fileName}...")
-                wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + fileName)
-                workingPath = config.DOWNLOAD_FOLDER + fileName
-                print(f"{INDENT}Found!")
-                break
-            except:
-                print(f"{INDENT}Could not find: {fileName}.\n{INDENT}Trying next name option...")
-                fileAppendNum += 1
-        else:
-            try:
-                downloadAppend = f" ({fileAppendNum})"
-                fileName = FILE_NAME + downloadAppend + FILE_EXTENSION
-                print(f"{INDENT}Looking for {fileName}...")
-                wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + fileName)
-                workingPath = config.DOWNLOAD_FOLDER + fileName
-                print(f"{INDENT}Found!")
-                break
-            except:
-                print(f"{INDENT}Could not find: {fileName}.\n{INDENT}Trying next name option...")
-                fileAppendNum += 1
-        if fileAppendNum == 4:
-            print(f"{INDENT}ERROR: Could not find file after {fileAppendNum} tries.")
+    numOfCopies = 4
+    fileNames = makeFileNames(FILE_NAME, FILE_EXTENSIONS, numOfCopies)
+    for file in fileNames:
+        [result, wb, workingPath] = mountFile(file)
+        if result:
             break
-                
+    if not wb:
+        # Halt if no file was found
+        print(f"Could not find file after {numOfCopies} tries.")
+        return 1
+
+    # Open download file
+    print(f"Opening downloaded file...")
     print(f"{INDENT}Retrieving date...")
     dateSheet = wb['Cases by Reported Date']
     DATE = dateSheet['A2'].value
@@ -88,9 +105,10 @@ while True:
     if DATE == PREVIOUS_DATE:
         print(f"{INDENT}Stopping execution: Spreadsheet data has already been read. (Already read data from: {DATE})")
         print(f"{INDENT}Deleting downloaded file...")
-        os.remove(workingPath)
-        break
+        os_remove(workingPath)
+        return 1
 
+    # Get data
     print(f"{INDENT}Retrieving COVID data...")
     sheet = wb['Daily Status']
     TOTAL_CASE_COUNT = sheet['B2'].value
@@ -104,7 +122,9 @@ while True:
 
     # Delete file once we have the data
     print(f"{INDENT}Deleting downloaded file...")
-    os.remove(workingPath)
+    os_remove(workingPath)
+
+# WRITE TO REMOTE
 
     # Update Google Sheet
     print("Updating Google Sheet with new data...")
@@ -114,7 +134,9 @@ while True:
     print(f"{INDENT}Updating row {ACTIVE_ROW}...")
     sheet.updateRow(ACTIVE_ROW, LATEST_DATA)
 
-    # Update counters in this script for next time
+# CLEAN UP
+
+    # Update counters in in source for next time
     print("Updating source script...")
     print(f"{INDENT}Reading update.py...")
     content = []
@@ -122,6 +144,7 @@ while True:
         for line in f:
             content.append(line)
 
+    # Write updates to source file
     print("  Writing update.py...")
     with open(__file__,"w") as f:
         nextRow = ACTIVE_ROW + 1
@@ -133,4 +156,7 @@ while True:
             f.write(content[i])
 
     print("Success! All done!")
-    break
+    return 0
+
+if __name__ == "__main__":
+    main()
