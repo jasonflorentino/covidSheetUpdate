@@ -10,13 +10,13 @@ import ezsheets
 DRIVER_LOCATION = "/usr/local/bin/chromedriver"
 DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/view"
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
-FILE_NAME = "CityofToronto_COVID-19_Daily_Public_Reporting"
+FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
-ACTIVE_ROW = 351
+ACTIVE_ROW = 418
 ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATE = '2021-02-20'
+PREVIOUS_DATE = '2021-04-29'
 PREVIOUS_DATE_LINE_NO = 17
-INDENT = "  "
+INDENT = "   "
 
 # # # # # # # #
 # DEFINITIONS #
@@ -37,15 +37,15 @@ def makeFileNames(fileName, listOfExt, numOfCopies):
             fileNames.append(f"{fileName} ({num}){listOfExt[0]}{listOfExt[1]}")
     return fileNames
 
-def mountFile(fileName):
+def mountFile(fileName, folder):
     try:
-        print(f"{INDENT}Looking for {fileName}...")
-        wb = openpyxl.load_workbook(config.DOWNLOAD_FOLDER + fileName)
-        workingPath = config.DOWNLOAD_FOLDER + fileName
+        print(f"{INDENT}Looking for {fileName} in {folder}...")
+        wb = openpyxl.load_workbook(folder + fileName)
+        workingPath = folder + fileName
         print(f"{INDENT}Found!")
         return [True, wb, workingPath]
     except:
-        print(f"{INDENT}Could not find: {fileName}.")
+        print(f"{INDENT}Could not find: {fileName} in {folder}.")
         return [False, None, None]
 
 # # # # # # # # #
@@ -81,12 +81,16 @@ def main():
 
     # Get download file
     print("Searching for download file...")
+    result = None
     wb = None
     workingPath = ''
     numOfCopies = 4
     fileNames = makeFileNames(FILE_NAME, FILE_EXTENSIONS, numOfCopies)
     for file in fileNames:
-        [result, wb, workingPath] = mountFile(file)
+        for folder in config.DOWNLOAD_FOLDER:
+            [result, wb, workingPath] = mountFile(file, folder)
+            if result:
+                break
         if result:
             break
     if not wb:
@@ -106,11 +110,11 @@ def main():
         print(f"{INDENT}Stopping execution: Spreadsheet data has already been read. (Already read data from: {DATE})")
         print(f"{INDENT}Deleting downloaded file...")
         os_remove(workingPath)
-        return 1
+        return 2
 
     # Get data
     print(f"{INDENT}Retrieving COVID data...")
-    sheet = wb['Daily Status']
+    sheet = wb['Status']
     TOTAL_CASE_COUNT = sheet['B2'].value
     RECOVERED = sheet['B5'].value
     FATAL = sheet['B6'].value
@@ -145,7 +149,7 @@ def main():
             content.append(line)
 
     # Write updates to source file
-    print("  Writing update.py...")
+    print(f"{INDENT}Writing update.py...")
     with open(__file__,"w") as f:
         nextRow = ACTIVE_ROW + 1
         print(f"{INDENT}Writing: ACTIVE_ROW = {nextRow}")
