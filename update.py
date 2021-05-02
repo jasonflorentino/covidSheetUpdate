@@ -12,9 +12,9 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
-ACTIVE_ROW = 418
+ACTIVE_ROW = 421
 ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATE = '2021-04-29'
+PREVIOUS_DATE = '2021-04-30'
 PREVIOUS_DATE_LINE_NO = 17
 INDENT = "   "
 
@@ -115,11 +115,11 @@ def main():
     # Get data
     print(f"{INDENT}Retrieving COVID data...")
     sheet = wb['Status']
-    TOTAL_CASE_COUNT = sheet['B2'].value
-    RECOVERED = sheet['B5'].value
-    FATAL = sheet['B6'].value
-    CURRENTLY_HOSP = sheet['B8'].value
-    CURRENTLY_ICU = sheet['B9'].value
+    TOTAL_CASE_COUNT = sheet['C2'].value
+    RECOVERED = sheet['C5'].value
+    FATAL = sheet['C6'].value
+    CURRENTLY_HOSP = sheet['C8'].value
+    CURRENTLY_ICU = sheet['C9'].value
 
     LATEST_DATA = [DATE, TOTAL_CASE_COUNT, RECOVERED, FATAL, CURRENTLY_HOSP, CURRENTLY_ICU]
     print(f"{INDENT}Success! New data retrieved: {LATEST_DATA}")
