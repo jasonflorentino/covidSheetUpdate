@@ -14,8 +14,8 @@ FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
 ACTIVE_ROW = 433
 ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATE = '2021-05-14'
-PREVIOUS_DATE_LINE_NO = 17
+PREVIOUS_DATA = ['2021-05-14', 160146, 147384, 3248, 1042, 274]
+PREVIOUS_DATA_LINE_NO = 17
 INDENT = "   "
 
 # # # # # # # #
@@ -58,7 +58,7 @@ def main():
 
     # Open browser, download file
     print("Running update.py...")
-    print(f"Last date recorded: {PREVIOUS_DATE}")
+    print(f"Last date recorded: {PREVIOUS_DATA[0]}")
     print("Getting data file...")
     print(f"{INDENT}Opening browser...")
     browser = webdriver.Chrome(DRIVER_LOCATION)
@@ -106,7 +106,7 @@ def main():
     DATE = str(DATE).split(" ")[0]
 
     # Halt if we've seen this data before
-    if DATE == PREVIOUS_DATE:
+    if DATE == PREVIOUS_DATA[0]:
         print(f"{INDENT}Stopping execution: Spreadsheet data has already been read. (Already read data from: {DATE})")
         print(f"{INDENT}Deleting downloaded file...")
         os_remove(workingPath)
@@ -154,8 +154,8 @@ def main():
         nextRow = ACTIVE_ROW + 1
         print(f"{INDENT}Writing: ACTIVE_ROW = {nextRow}")
         content[ACTIVE_ROW_LINE_NO - 1] = f"ACTIVE_ROW = {nextRow}\n"
-        print(f"{INDENT}Writing: PREVIOUS_DATE = '{DATE}'")
-        content[PREVIOUS_DATE_LINE_NO - 1] = f"PREVIOUS_DATE = '{DATE}'\n"
+        print(f"{INDENT}Writing: PREVIOUS_DATA = {LATEST_DATA}")
+        content[PREVIOUS_DATA_LINE_NO - 1] = f"PREVIOUS_DATA = {LATEST_DATA}\n"
         for i in range(len(content)):
             f.write(content[i])
 
