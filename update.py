@@ -12,9 +12,9 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
-ACTIVE_ROW = 421
+ACTIVE_ROW = 433
 ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATE = '2021-04-30'
+PREVIOUS_DATE = '2021-05-14'
 PREVIOUS_DATE_LINE_NO = 17
 INDENT = "   "
 
@@ -37,7 +37,7 @@ def makeFileNames(fileName, listOfExt, numOfCopies):
             fileNames.append(f"{fileName} ({num}){listOfExt[0]}{listOfExt[1]}")
     return fileNames
 
-def mountFile(fileName, folder):
+def mountDataFile(fileName, folder):
     try:
         print(f"{INDENT}Looking for {fileName} in {folder}...")
         wb = openpyxl.load_workbook(folder + fileName)
@@ -88,7 +88,7 @@ def main():
     fileNames = makeFileNames(FILE_NAME, FILE_EXTENSIONS, numOfCopies)
     for file in fileNames:
         for folder in config.DOWNLOAD_FOLDER:
-            [result, wb, workingPath] = mountFile(file, folder)
+            [result, wb, workingPath] = mountDataFile(file, folder)
             if result:
                 break
         if result:
