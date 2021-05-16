@@ -3,6 +3,8 @@
 from selenium import webdriver
 from time import sleep
 from os import remove as os_remove
+from os import rename as os_rename
+import datetime as dt
 import openpyxl
 import config
 import ezsheets
@@ -12,10 +14,10 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
-ACTIVE_ROW = 433
-ACTIVE_ROW_LINE_NO = 15
-PREVIOUS_DATA = ['2021-05-14', 160146, 147384, 3248, 1042, 274]
-PREVIOUS_DATA_LINE_NO = 17
+ACTIVE_ROW = 434
+ACTIVE_ROW_LINE_NO = 17
+PREVIOUS_DATA = ['2021-05-15', 160146, 147384, 3248, 1042, 274]
+PREVIOUS_DATA_LINE_NO = 19
 INDENT = "   "
 
 # # # # # # # #
@@ -47,6 +49,41 @@ def mountDataFile(fileName, folder):
     except:
         print(f"{INDENT}Could not find: {fileName} in {folder}.")
         return [False, None, None]
+
+def updateGoogleSheet(data):
+    try:
+        print(f"Updating Google Sheet with data: {data}")
+        print(f"{INDENT}Accessing Google sheet...")
+        doc = ezsheets.Spreadsheet(config.GOOGLE_SHEET_ID)
+        sheet = doc[0]
+        print(f"{INDENT}Updating row {ACTIVE_ROW}...")
+        sheet.updateRow(ACTIVE_ROW, data)
+        print(f"{INDENT}Update successful!")
+        return data[:6]
+    except:
+        print(f"{INDENT}Error: Could not update Google Sheet.")
+        return False
+
+def updateSourceScript(data):
+    # Update counters in in source for next time
+    print("Updating source script...")
+    print(f"{INDENT}Reading update.py...")
+    content = []
+    with open(__file__,"r") as f:
+        for line in f:
+            content.append(line)
+
+    # Write updates to source file
+    print(f"{INDENT}Writing update.py...")
+    with open(__file__,"w") as f:
+        nextRow = ACTIVE_ROW + 1
+        print(f"{INDENT}Writing: ACTIVE_ROW = {nextRow}")
+        content[ACTIVE_ROW_LINE_NO - 1] = f"ACTIVE_ROW = {nextRow}\n"
+        print(f"{INDENT}Writing: PREVIOUS_DATA = {data}")
+        content[PREVIOUS_DATA_LINE_NO - 1] = f"PREVIOUS_DATA = {data}\n"
+        for i in range(len(content)):
+            f.write(content[i])
+
 
 # # # # # # # # #
 # MAIN  PROGRAM #
@@ -96,20 +133,40 @@ def main():
     if not wb:
         # Halt if no file was found
         print(f"Could not find file after {numOfCopies} tries.")
+        print("Halting with exit code 1")
         return 1
 
     # Open download file
     print(f"Opening downloaded file...")
     print(f"{INDENT}Retrieving date...")
     dateSheet = wb['Cases by Reported Date']
-    DATE = dateSheet['A2'].value
-    DATE = str(DATE).split(" ")[0]
+    SHEET_DATE = dateSheet['A2'].value
+    SHEET_DATE = str(SHEET_DATE).split(" ")[0]
 
     # Halt if we've seen this data before
-    if DATE == PREVIOUS_DATA[0]:
-        print(f"{INDENT}Stopping execution: Spreadsheet data has already been read. (Already read data from: {DATE})")
-        print(f"{INDENT}Deleting downloaded file...")
-        os_remove(workingPath)
+    if SHEET_DATE == PREVIOUS_DATA[0]:
+        print(f"{INDENT}Diverting update: Downloaded file has already been read. (Already read data from: {SHEET_DATE})")
+       
+        # Copy previous day's data into new row for today
+        print(f"{INDENT}Proceeding to update Google Sheet with prev data...")
+        newDate = dt.datetime.strptime(PREVIOUS_DATA[0], '%Y-%m-%d')
+        newDate += dt.timedelta(days=1)
+        DUPLICATE_DATA = [newDate.strftime('%Y-%m-%d')] + PREVIOUS_DATA[1:]
+        WRITTEN_DATA = updateGoogleSheet(DUPLICATE_DATA)
+
+        if WRITTEN_DATA:
+            updateSourceScript(WRITTEN_DATA)
+        else:
+            print("Error: Could not update source script with prev day's data")
+            print("Halting with exit code 3")
+            return 3
+
+        # Rename downloaded file for inspection
+        print(f"{INDENT}Renaming downloaded file for inspection...")
+        newFileName = workingPath + WRITTEN_DATA[0] + FILE_EXTENSIONS[0]
+        os_rename(workingPath, newFileName)
+        print(f"{INDENT}New file name: {newFileName}")
+        print("Halting with exit code 2")
         return 2
 
     # Get data
@@ -121,7 +178,7 @@ def main():
     CURRENTLY_HOSP = sheet['C8'].value
     CURRENTLY_ICU = sheet['C9'].value
 
-    LATEST_DATA = [DATE, TOTAL_CASE_COUNT, RECOVERED, FATAL, CURRENTLY_HOSP, CURRENTLY_ICU]
+    LATEST_DATA = [SHEET_DATE, TOTAL_CASE_COUNT, RECOVERED, FATAL, CURRENTLY_HOSP, CURRENTLY_ICU]
     print(f"{INDENT}Success! New data retrieved: {LATEST_DATA}")
 
     # Delete file once we have the data
@@ -130,34 +187,16 @@ def main():
 
 # WRITE TO REMOTE
 
-    # Update Google Sheet
-    print("Updating Google Sheet with new data...")
-    print(f"{INDENT}Accessing Google sheet...")
-    doc = ezsheets.Spreadsheet(config.GOOGLE_SHEET_ID)
-    sheet = doc[0]
-    print(f"{INDENT}Updating row {ACTIVE_ROW}...")
-    sheet.updateRow(ACTIVE_ROW, LATEST_DATA)
+    WRITTEN_DATA = updateGoogleSheet(LATEST_DATA)
 
 # CLEAN UP
 
-    # Update counters in in source for next time
-    print("Updating source script...")
-    print(f"{INDENT}Reading update.py...")
-    content = []
-    with open(__file__,"r") as f:
-        for line in f:
-            content.append(line)
-
-    # Write updates to source file
-    print(f"{INDENT}Writing update.py...")
-    with open(__file__,"w") as f:
-        nextRow = ACTIVE_ROW + 1
-        print(f"{INDENT}Writing: ACTIVE_ROW = {nextRow}")
-        content[ACTIVE_ROW_LINE_NO - 1] = f"ACTIVE_ROW = {nextRow}\n"
-        print(f"{INDENT}Writing: PREVIOUS_DATA = {LATEST_DATA}")
-        content[PREVIOUS_DATA_LINE_NO - 1] = f"PREVIOUS_DATA = {LATEST_DATA}\n"
-        for i in range(len(content)):
-            f.write(content[i])
+    if WRITTEN_DATA:
+        updateSourceScript(WRITTEN_DATA)
+    else:
+        print("Error: Could not update source script with today's data")
+        print("Halting with exit code 4")
+        return 4
 
     print("Success! All done!")
     return 0
