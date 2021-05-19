@@ -14,10 +14,11 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
-ACTIVE_ROW = 434
+ACTIVE_ROW = 436
 ACTIVE_ROW_LINE_NO = 17
-PREVIOUS_DATA = ['2021-05-15', 160146, 147384, 3248, 1042, 274]
+PREVIOUS_DATA = ['2021-05-17', 161904, 150177, 3271, 1011, 271]
 PREVIOUS_DATA_LINE_NO = 19
+DATE_FORMAT = '%Y-%m-%d'
 INDENT = "   "
 
 # # # # # # # #
@@ -84,6 +85,11 @@ def updateSourceScript(data):
         for i in range(len(content)):
             f.write(content[i])
 
+def isPreviouslyReadDate(sheetDate, prevDate):
+    incoming = dt.datetime.strptime(sheetDate, DATE_FORMAT)
+    previous = dt.datetime.strptime(prevDate, DATE_FORMAT)
+    return incoming <= previous
+
 
 # # # # # # # # #
 # MAIN  PROGRAM #
@@ -144,14 +150,14 @@ def main():
     SHEET_DATE = str(SHEET_DATE).split(" ")[0]
 
     # Halt if we've seen this data before
-    if SHEET_DATE == PREVIOUS_DATA[0]:
+    if isPreviouslyReadDate(SHEET_DATE, PREVIOUS_DATA[0]):
         print(f"{INDENT}Diverting update: Downloaded file has already been read. (Already read data from: {SHEET_DATE})")
        
         # Copy previous day's data into new row for today
         print(f"{INDENT}Proceeding to update Google Sheet with prev data...")
-        newDate = dt.datetime.strptime(PREVIOUS_DATA[0], '%Y-%m-%d')
+        newDate = dt.datetime.strptime(PREVIOUS_DATA[0], DATE_FORMAT)
         newDate += dt.timedelta(days=1)
-        DUPLICATE_DATA = [newDate.strftime('%Y-%m-%d')] + PREVIOUS_DATA[1:]
+        DUPLICATE_DATA = [newDate.strftime(DATE_FORMAT)] + PREVIOUS_DATA[1:]
         WRITTEN_DATA = updateGoogleSheet(DUPLICATE_DATA)
 
         if WRITTEN_DATA:
