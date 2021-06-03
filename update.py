@@ -8,15 +8,15 @@ import datetime as dt
 import openpyxl
 import config
 import ezsheets
+from chromedriver_py import binary_path as DRIVER
 
-DRIVER_LOCATION = "/usr/local/bin/chromedriver"
 DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/view"
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
-ACTIVE_ROW = 442
+ACTIVE_ROW = 450
 ACTIVE_ROW_LINE_NO = 17
-PREVIOUS_DATA = ['2021-05-23', 163990, 153554, 3307, 979, 250]
+PREVIOUS_DATA = ['2021-05-31', 166928, 159377, 3382, 846, 234]
 PREVIOUS_DATA_LINE_NO = 19
 DATE_FORMAT = '%Y-%m-%d'
 INDENT = "   "
@@ -104,7 +104,7 @@ def main():
     print(f"Last date recorded: {PREVIOUS_DATA[0]}")
     print("Getting data file...")
     print(f"{INDENT}Opening browser...")
-    browser = webdriver.Chrome(DRIVER_LOCATION)
+    browser = webdriver.Chrome(DRIVER)
     browser.get(DATA_URL)
     wait(4)
 
