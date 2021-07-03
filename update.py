@@ -14,10 +14,12 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
-ACTIVE_ROW = 450
+ACTIVE_ROW = 482
 ACTIVE_ROW_LINE_NO = 17
-PREVIOUS_DATA = ['2021-05-31', 166928, 159377, 3382, 846, 234]
+PREVIOUS_DATA = ['2021-07-02', 169846, 165789, 3561, 93, 35]
 PREVIOUS_DATA_LINE_NO = 19
+DAYS_SINCE_NO_UPDATE = 0
+DAYS_SINCE_NO_UPDATE_LINE_NO = 21
 DATE_FORMAT = '%Y-%m-%d'
 INDENT = "   "
 
@@ -82,6 +84,8 @@ def updateSourceScript(data):
         content[ACTIVE_ROW_LINE_NO - 1] = f"ACTIVE_ROW = {nextRow}\n"
         print(f"{INDENT}Writing: PREVIOUS_DATA = {data}")
         content[PREVIOUS_DATA_LINE_NO - 1] = f"PREVIOUS_DATA = {data}\n"
+        print(f"{INDENT}Writing: DAYS_SINCE_NO_UPDATE = {DAYS_SINCE_NO_UPDATE}")
+        content[DAYS_SINCE_NO_UPDATE_LINE_NO - 1] = f"DAYS_SINCE_NO_UPDATE = {DAYS_SINCE_NO_UPDATE}\n"
         for i in range(len(content)):
             f.write(content[i])
 
@@ -96,6 +100,7 @@ def isPreviouslyReadDate(sheetDate, prevDate):
 # # # # # # # # #
 
 def main():
+    global DAYS_SINCE_NO_UPDATE
 
 # BROWSER
 
@@ -156,12 +161,13 @@ def main():
         # Copy previous day's data into new row for today
         print(f"{INDENT}Proceeding to update Google Sheet with prev data...")
         newDate = dt.datetime.strptime(PREVIOUS_DATA[0], DATE_FORMAT)
-        newDate += dt.timedelta(days=1)
+        DAYS_SINCE_NO_UPDATE += 1
+        newDate += dt.timedelta(days=DAYS_SINCE_NO_UPDATE)
         DUPLICATE_DATA = [newDate.strftime(DATE_FORMAT)] + PREVIOUS_DATA[1:]
         WRITTEN_DATA = updateGoogleSheet(DUPLICATE_DATA)
 
         if WRITTEN_DATA:
-            updateSourceScript(WRITTEN_DATA)
+            updateSourceScript(PREVIOUS_DATA)
         else:
             print("Error: Could not update source script with prev day's data")
             print("Halting with exit code 3")
@@ -198,6 +204,7 @@ def main():
 # CLEAN UP
 
     if WRITTEN_DATA:
+        DAYS_SINCE_NO_UPDATE = 0
         updateSourceScript(WRITTEN_DATA)
     else:
         print("Error: Could not update source script with today's data")
