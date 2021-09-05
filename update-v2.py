@@ -30,11 +30,11 @@ INDENT = "   "
 Sheet Update Values
 """
 ACTIVE_ROW = 546
-ACTIVE_ROW_LINE_NO = 26
+ACTIVE_ROW_LINE_NO = 32
 PREVIOUS_DATA = ['2021-09-03', 174911, 169644, 3622, 75, 22]
-PREVIOUS_DATA_LINE_NO = 28
+PREVIOUS_DATA_LINE_NO = 34
 DAYS_SINCE_NO_UPDATE = 1
-DAYS_SINCE_NO_UPDATE_LINE_NO = 30
+DAYS_SINCE_NO_UPDATE_LINE_NO = 36
 
 # # # # # # # # # #
 # Fn  Definitions #
@@ -150,6 +150,7 @@ def getCovidData(sheet, date):
 def main():
 	global DAYS_SINCE_NO_UPDATE
 	global ACTIVE_ROW
+	log("=== Running update-v2.py ===")
 
 	log("Downloading file...")
 	downloadFile(DOWNLOAD_URL, FULL_PATH_TO_FILE)
@@ -157,6 +158,7 @@ def main():
 	log("Opening downloaded file...")
 	wb = openpyxl.load_workbook(FULL_PATH_TO_FILE)
 
+	log("Comparing dates...")
 	log("Last date recorded: " + PREVIOUS_DATA[0], 2)
 	sheetDate = getSheetDate(wb)
 	log("Incoming date: " + sheetDate, 2)
@@ -191,6 +193,7 @@ def main():
 		return 2
 
 	# Date is new, continue as normal
+	log("New date!")
 	log("Retrieving COVID data...", 2)
 	sheet = wb['Status']
 	latestData = getCovidData(sheet, sheetDate)
