@@ -15,6 +15,7 @@ import config
 import datetime as dt
 import ezsheets
 import os
+import sys
 
 """
 Script Constants
@@ -30,11 +31,11 @@ INDENT = "   "
 Sheet Update Values
 """
 ACTIVE_ROW = 546
-ACTIVE_ROW_LINE_NO = 32
+ACTIVE_ROW_LINE_NO = 33
 PREVIOUS_DATA = ['2021-09-03', 174911, 169644, 3622, 75, 22]
-PREVIOUS_DATA_LINE_NO = 34
+PREVIOUS_DATA_LINE_NO = 35
 DAYS_SINCE_NO_UPDATE = 1
-DAYS_SINCE_NO_UPDATE_LINE_NO = 36
+DAYS_SINCE_NO_UPDATE_LINE_NO = 37
 
 # # # # # # # # # #
 # Fn  Definitions #
@@ -101,7 +102,6 @@ def updateSourceScript(data):
 	with open(__file__,"r") as f:
 		for line in f:
 			content.append(line)
-
 	# Write updates to source file
 	log("Writing update.py...", 2)
 	with open(__file__,"w") as f:
@@ -121,7 +121,7 @@ wb - Work book to pull date out of
 def getSheetDate(wb):
 	log("Retrieving spreadsheet's date...", 2)
 	cellText = str(wb['Data Note']['A2'].value)
-	textDate = cellText[11:] # Slice date from format: 'Data as of Month DD , YYYY'
+	textDate = cellText[11:] # Slice date from string: 'Data as of Month DD , YYYY'
 	dtInstance = dt.datetime.strptime(textDate, DATE_FORMAT_LONG)
 	return dt.datetime.strftime(dtInstance, DATE_FORMAT)
 
@@ -144,7 +144,7 @@ def getCovidData(sheet, date):
 	]
 
 # # # # # # # # #
-# Main Program  #
+# Main  Program #
 # # # # # # # # #
 
 def main():
@@ -159,8 +159,8 @@ def main():
 	wb = openpyxl.load_workbook(FULL_PATH_TO_FILE)
 
 	log("Comparing dates...")
-	log("Last date recorded: " + PREVIOUS_DATA[0], 2)
 	sheetDate = getSheetDate(wb)
+	log("Last date recorded: " + PREVIOUS_DATA[0], 2)
 	log("Incoming date: " + sheetDate, 2)
 
 	if isPreviouslyReadDate(sheetDate, PREVIOUS_DATA[0]):
@@ -180,8 +180,7 @@ def main():
 			updateSourceScript(PREVIOUS_DATA)
 		else:
 			log("Error: Google Sheet update failed. Script rewrite was not executed.")
-			log("Halting with exit code 3")
-			return 3
+			return "Halting with exit code 1"
 
 		log("Renaming downloaded file for inspection...", 2)
 		newFileName = FULL_PATH_TO_FILE + WRITTEN_DATA[0] + ".xlsx"
@@ -189,8 +188,7 @@ def main():
 		log("New file name: " + newFileName, 2)
 		os.rename(FULL_PATH_TO_FILE, newFileName)
 
-		log("Halting with exit code 2")
-		return 2
+		return "Halting with exit code 2"
 
 	# Date is new, continue as normal
 	log("New date!")
@@ -207,11 +205,10 @@ def main():
 		updateSourceScript(WRITTEN_DATA)
 	else:
 		log("Error: Could not update source script with today's data")
-		log("Halting with exit code 4")
-		return 4
+		return "Halting with exit code 3"
 
 	log("Success! All done!")
 	return 0
 
 if __name__ == "__main__":
-	main()
+	sys.exit(main())
