@@ -7,6 +7,13 @@ https://youtu.be/HhdaOtyl-MY
 
 Thanks,
 
-—Jason
-
+—Jason  
 2020-12-23
+
+---
+
+#### Add update-v2.py to simplify gathering data.
+Instead of using selenium to navigate to page and interact to 
+download file we now use `requests` to download the file directly.  
+—Jason  
+2021-09-05
