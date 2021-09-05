@@ -1,4 +1,10 @@
 #! Python3
+"""
+V2 of update.py downloads the data file directly
+instead of using selenium to navigate to the webpage 
+to download the file.
+— Jason, 2021-09-05
+"""
 
 """
 Imports
