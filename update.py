@@ -14,9 +14,9 @@ DATA_URL = "https://drive.google.com/file/d/11KF1DuN5tntugNc10ogQDzFnW05ruzLH/vi
 XPATH = "/html/body/div[3]/div[3]/div/div[3]/div[2]/div[2]/div[3]"
 FILE_NAME = "CityofToronto_COVID-19_Status_Public_Reporting"
 FILE_EXTENSIONS = [".xlsx", ".xlsm"]
-ACTIVE_ROW = 482
+ACTIVE_ROW = 543
 ACTIVE_ROW_LINE_NO = 17
-PREVIOUS_DATA = ['2021-07-02', 169846, 165789, 3561, 93, 35]
+PREVIOUS_DATA = ['2021-09-01', 174573, 169368, 3621, 60, 21]
 PREVIOUS_DATA_LINE_NO = 19
 DAYS_SINCE_NO_UPDATE = 0
 DAYS_SINCE_NO_UPDATE_LINE_NO = 21
@@ -106,12 +106,11 @@ def main():
 
     # Open browser, download file
     print("Running update.py...")
-    print(f"Last date recorded: {PREVIOUS_DATA[0]}")
     print("Getting data file...")
     print(f"{INDENT}Opening browser...")
     browser = webdriver.Chrome(DRIVER)
     browser.get(DATA_URL)
-    wait(4)
+    wait(7)
 
     # Locate + Click download button
     button = browser.find_element_by_xpath(XPATH)
@@ -153,6 +152,8 @@ def main():
     dateSheet = wb['Cases by Reported Date']
     SHEET_DATE = dateSheet['A2'].value
     SHEET_DATE = str(SHEET_DATE).split(" ")[0]
+    print(f"{INDENT}Incoming date: {SHEET_DATE}")
+    print(f"{INDENT}Last date recorded: {PREVIOUS_DATA[0]}")
 
     # Halt if we've seen this data before
     if isPreviouslyReadDate(SHEET_DATE, PREVIOUS_DATA[0]):
