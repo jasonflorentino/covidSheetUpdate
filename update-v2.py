@@ -55,11 +55,15 @@ url        - Url to download, assumes chunked content
 outputFile - Destination file
 """
 def downloadFile(url, outputFile):
-	res = requests.get(url, allow_redirects=True, stream=True)
-	with open(outputFile, 'wb') as file:
-		for chunk in res.iter_content():
-			file.write(chunk)
-	file.close()
+	try:
+		res = requests.get(url, allow_redirects=True, stream=True)
+		with open(outputFile, 'wb') as file:
+			for chunk in res.iter_content():
+				file.write(chunk)
+		file.close()
+	except requests.exceptions.RequestException as e:
+		log("File download failed!")
+		raise SystemExit(e)
 
 """
 Returns true if the newDate is earlier or the same as the prevDate
@@ -173,7 +177,7 @@ def main():
 			ACTIVE_ROW += 1
 			updateSourceScript(PREVIOUS_DATA)
 		else:
-			log("Error: Google Sheet update failed. Avoiding script rewrite.")
+			log("Error: Google Sheet update failed. Script rewrite was not executed.")
 			log("Halting with exit code 3")
 			return 3
 
