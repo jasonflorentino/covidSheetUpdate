@@ -15,7 +15,7 @@ Thanks,
 
 ## Updates
 
-#### 2021-09-05
+##### 2021-09-05
 **Add update-v2.py to simplify gathering data.**  
 Instead of using selenium to navigate to page and interact to 
 download file we now use `requests` to download the file directly.  
