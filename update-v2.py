@@ -30,9 +30,9 @@ INDENT = "   "
 """
 Sheet Update Values
 """
-ACTIVE_ROW = 549
+ACTIVE_ROW = 550
 ACTIVE_ROW_LINE_NO = 33
-PREVIOUS_DATA = ['2021-09-07', 175496, 170229, 3624, 83, 24]
+PREVIOUS_DATA = ['2021-09-08', 175642, 170401, 3627, 87, 24]
 PREVIOUS_DATA_LINE_NO = 35
 DAYS_SINCE_NO_UPDATE = 0
 DAYS_SINCE_NO_UPDATE_LINE_NO = 37
@@ -113,6 +113,7 @@ def updateSourceScript(data):
 		content[DAYS_SINCE_NO_UPDATE_LINE_NO - 1] = f"DAYS_SINCE_NO_UPDATE = {DAYS_SINCE_NO_UPDATE}\n"
 		for i in range(len(content)):
 			f.write(content[i])
+	log("Write complete!", 2)
 
 """
 Returns given workbook's date as string in format YYYY-MM-DD
@@ -206,7 +207,9 @@ def main():
 	else:
 		log("Error: Could not update source script with today's data")
 		return "Halting with exit code 3"
-
+	
+	log("Deleting downloaded file...")
+	os.remove(FULL_PATH_TO_FILE)
 	log("Success! All done!")
 	return 0
 
