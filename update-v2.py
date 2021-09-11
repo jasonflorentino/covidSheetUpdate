@@ -127,7 +127,9 @@ def getSheetDate(wb):
 	try:
 		dtInstance = dt.datetime.strptime(textDate, DATE_FORMAT_LONG)
 	except:
+		log("Date format didn't match. Trying option 2...", 2)
 		dtInstance = dt.datetime.strptime(textDate, DATE_FORMAT_LONG2)
+	log("Date retrieved!", 2)
 	return dt.datetime.strftime(dtInstance, DATE_FORMAT)
 
 """
