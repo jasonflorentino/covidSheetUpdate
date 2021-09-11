@@ -25,17 +25,18 @@ FILE_NAME = "toronto_covid_data.xlsx"
 FULL_PATH_TO_FILE = config.DESKTOP + FILE_NAME
 DATE_FORMAT = '%Y-%m-%d'
 DATE_FORMAT_LONG = '%B %d, %Y'
+DATE_FORMAT_LONG2 = '%B %d , %Y'
 INDENT = "   "
 
 """
 Sheet Update Values
 """
-ACTIVE_ROW = 550
-ACTIVE_ROW_LINE_NO = 33
-PREVIOUS_DATA = ['2021-09-08', 175642, 170401, 3627, 87, 24]
-PREVIOUS_DATA_LINE_NO = 35
+ACTIVE_ROW = 552
+ACTIVE_ROW_LINE_NO = 34
+PREVIOUS_DATA = ['2021-09-10', 175977, 170724, 3631, 94, 25]
+PREVIOUS_DATA_LINE_NO = 36
 DAYS_SINCE_NO_UPDATE = 0
-DAYS_SINCE_NO_UPDATE_LINE_NO = 37
+DAYS_SINCE_NO_UPDATE_LINE_NO = 38
 
 # # # # # # # # # #
 # Fn  Definitions #
@@ -123,7 +124,10 @@ def getSheetDate(wb):
 	log("Retrieving spreadsheet's date...", 2)
 	cellText = str(wb['Data Note']['A2'].value)
 	textDate = cellText[11:] # Slice date from string: 'Data as of Month DD , YYYY'
-	dtInstance = dt.datetime.strptime(textDate, DATE_FORMAT_LONG)
+	try:
+		dtInstance = dt.datetime.strptime(textDate, DATE_FORMAT_LONG)
+	except:
+		dtInstance = dt.datetime.strptime(textDate, DATE_FORMAT_LONG2)
 	return dt.datetime.strftime(dtInstance, DATE_FORMAT)
 
 """
