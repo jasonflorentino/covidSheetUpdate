@@ -31,12 +31,18 @@ INDENT = "   "
 #
 # Sheet Update Values
 #
-ACTIVE_ROW = 642
+ACTIVE_ROW = 760
 ACTIVE_ROW_LINE_NO = 34
-PREVIOUS_DATA = ['2021-12-08', 184513, 179366, 3718, 27, 8]
+PREVIOUS_DATA = ['2022-04-06', 304756, 295165, 4162, 88, 16]
 PREVIOUS_DATA_LINE_NO = 36
 DAYS_SINCE_NO_UPDATE = 0
 DAYS_SINCE_NO_UPDATE_LINE_NO = 38
+
+CASE_COUNT_CELL = "C10"
+RECOVERED_CELL = "C4"
+FATAL_CELL = "C5"
+HOSPITALIZED_CELL = "C7"
+ICU_CELL = "C8"
 
 # # # # # # # # # #
 # Fn  Definitions #
@@ -140,11 +146,11 @@ def getCovidData(sheet, date):
     Pulls covid data out of a given sheet and 
     returns as a list with the given date
     """
-    totalCaseCount = sheet["C2"].value
-    recoveredCases = sheet["C5"].value
-    fatalCases = sheet["C6"].value
-    currentlyHospitalized = sheet["C8"].value
-    currentlyInICU = sheet["C9"].value
+    totalCaseCount = sheet[CASE_COUNT_CELL].value
+    recoveredCases = sheet[RECOVERED_CELL].value
+    fatalCases = sheet[FATAL_CELL].value
+    currentlyHospitalized = sheet[HOSPITALIZED_CELL].value
+    currentlyInICU = sheet[ICU_CELL].value
     return [
         date,
         totalCaseCount,
